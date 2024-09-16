@@ -14,6 +14,7 @@ import { requireUser } from "~/session.server";
 import { currencyFormatter, parseDate } from "~/utils";
 import { createDeposit } from "~/models/deposit.server";
 import invariant from "tiny-invariant";
+import { useRef } from "react";
 
 export async function loader({ request, params }: LoaderArgs) {
   await requireUser(request);
@@ -153,6 +154,7 @@ function Deposits() {
   const data = useLoaderData<typeof loader>();
   const newDepositFetcher = useFetcher();
   // 🐨 create a ref for the form (so we can reset it once the submission is finished)
+  const formRef = useRef<HTMLFormElement>(null);
 
   // 🐨 create a deposits array that includes the user's submission
   // 💰 you can get the user's submission via newDepositFetcher.submission
