@@ -14,7 +14,7 @@ import { requireUser } from "~/session.server";
 import { currencyFormatter, parseDate } from "~/utils";
 import { createDeposit } from "~/models/deposit.server";
 import invariant from "tiny-invariant";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 export async function loader({ request, params }: LoaderArgs) {
   await requireUser(request);
@@ -172,6 +172,12 @@ function Deposits() {
 
   // 🐨 add a useEffect that resets the form when the submission is finished
   // 💰 (newDepositFetcher.state === "idle")
+  useEffect(() => {
+    if (!formRef.current) return;
+    if (newDepositFetcher.state === "idle") {
+      formRef.current.reset();
+    }
+  }, [newDepositFetcher.state]);
 
   return (
     <div>
@@ -197,6 +203,7 @@ function Deposits() {
         method="post"
         className="grid grid-cols-1 gap-x-4 gap-y-2 lg:grid-cols-2"
         // 🐨 add your form ref here
+        ref={formRef}
       >
         <div className="min-w-[100px]">
           <div className="flex flex-wrap items-center gap-1">
