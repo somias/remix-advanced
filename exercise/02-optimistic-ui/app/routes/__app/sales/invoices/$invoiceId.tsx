@@ -157,6 +157,16 @@ function Deposits() {
   // 🐨 create a deposits array that includes the user's submission
   // 💰 you can get the user's submission via newDepositFetcher.submission
   // 💰 you can convert the depositDate to a Date object via parseDate and then use toLocaleDateString()
+  const deposits = [...data.deposits];
+  if (newDepositFetcher.submission) {
+    deposits.push({
+      id: "new",
+      amount: newDepositFetcher.submission.formData.get("amount"),
+      depositDateFormatted: parseDate(
+        newDepositFetcher.submission.formData.get("depositDate"),
+      ).toLocaleDateString(),
+    });
+  }
 
   // 🐨 add a useEffect that resets the form when the submission is finished
   // 💰 (newDepositFetcher.state === "idle")
@@ -165,9 +175,9 @@ function Deposits() {
     <div>
       <div className="font-bold leading-8">Deposits</div>
       {/* 🐨 swap this for your optimistic deposits array */}
-      {data.deposits.length > 0 ? (
+      {deposits.length > 0 ? (
         // 🐨 swap this for your optimistic deposits array
-        data.deposits.map((deposit) => (
+        deposits.map((deposit) => (
           <div key={deposit.id} className={lineItemClassName}>
             <Link
               to={`../../deposits/${deposit.id}`}
