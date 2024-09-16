@@ -161,13 +161,18 @@ function Deposits() {
   // 💰 you can convert the depositDate to a Date object via parseDate and then use toLocaleDateString()
   const deposits = [...data.deposits];
   if (newDepositFetcher.submission) {
-    deposits.push({
-      id: "new",
-      amount: newDepositFetcher.submission.formData.get("amount"),
-      depositDateFormatted: parseDate(
-        newDepositFetcher.submission.formData.get("depositDate"),
-      ).toLocaleDateString(),
-    });
+    const formAmount = Number(
+      newDepositFetcher.submission.formData.get("amount"),
+    );
+    const formDepositDate =
+      newDepositFetcher.submission.formData.get("depositDate");
+    if (typeof formAmount === "number" && typeof formDepositDate === "string") {
+      deposits.push({
+        id: "new",
+        amount: formAmount,
+        depositDateFormatted: parseDate(formDepositDate).toLocaleDateString(),
+      });
+    }
   }
 
   // 🐨 add a useEffect that resets the form when the submission is finished
