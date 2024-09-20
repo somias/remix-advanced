@@ -2,12 +2,22 @@ import clsx from "clsx";
 import { useCombobox } from "downshift";
 import { useId, useState } from "react";
 import { LabelText } from "~/components";
+import { requireUser } from "~/session.server";
+import { json, type LoaderArgs } from "@remix-run/node";
+import { searchCustomers } from "~/models/customer.server";
+import { useFetcher, useLoaderData } from "@remix-run/react";
 
-export async function loader() {
+export async function loader({ request }: LoaderArgs) {
   // 🐨 verify the user is logged in with requireUser
-
+  const user = await requireUser(request);
+  const formData = await request.formData();
+  const seachQuery = formData.get("query") as string;
   // 🐨 perform the customer search with searchCustomers and the query from the request
   // and send back a json response
+  if (user) {
+    const customers = searchCustomers(seachQuery);
+    return json({ customers });
+  }
 
   // 💣 and... delete this
   throw new Error("Not implemented");
@@ -16,11 +26,14 @@ export async function loader() {
 type Customer = { id: string; name: string; email: string };
 
 export function CustomerCombobox({ error }: { error?: string | null }) {
+  const data = useLoaderData<typeof loader>();
+
   // 🐨 use the useFetcher hook to fetch the customers
   const id = useId();
+  const fetcher = useFetcher();
 
   // 🐨 set this to the customer data you get from the fetcher (if it exists)
-  const customers: Array<Customer> = [];
+  const customers: Array<Customer> = [...data.customers];
   const [selectedCustomer, setSelectedCustomer] = useState<
     Customer | null | undefined
   >(null);
@@ -38,6 +51,11 @@ export function CustomerCombobox({ error }: { error?: string | null }) {
       // 💰 what method do we need to set this to so it ends up in the loader?
       // 💰 what should the action URL be set to so the request is always sent to
       // this route module regardless of where this component is used?
+      fetcher.submit({
+        name: "query",
+        value: changes.inputValue ?? "",
+        action: "/resources/customers",
+      });
     },
   });
 
