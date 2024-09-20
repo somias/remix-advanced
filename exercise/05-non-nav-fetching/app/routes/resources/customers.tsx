@@ -5,35 +5,29 @@ import { LabelText } from "~/components";
 import { requireUser } from "~/session.server";
 import { json, type LoaderArgs } from "@remix-run/node";
 import { searchCustomers } from "~/models/customer.server";
-import { useFetcher, useLoaderData } from "@remix-run/react";
+import { useFetcher } from "@remix-run/react";
+import invariant from "tiny-invariant";
 
 export async function loader({ request }: LoaderArgs) {
-  // 🐨 verify the user is logged in with requireUser
-  const user = await requireUser(request);
-  const formData = await request.formData();
-  const seachQuery = formData.get("query") as string;
-  // 🐨 perform the customer search with searchCustomers and the query from the request
-  // and send back a json response
-  if (user) {
-    const customers = searchCustomers(seachQuery);
-    return json({ customers });
-  }
+  await requireUser(request);
+  const url = new URL(request.url);
+  const query = url.searchParams.get("query");
 
-  // 💣 and... delete this
-  throw new Error("Not implemented");
+  invariant(typeof query === "string", "query must be provided");
+
+  const customers = await searchCustomers(query);
+  return json({ customers });
 }
 
 type Customer = { id: string; name: string; email: string };
 
 export function CustomerCombobox({ error }: { error?: string | null }) {
-  const data = useLoaderData<typeof loader>();
-
   // 🐨 use the useFetcher hook to fetch the customers
   const id = useId();
   const fetcher = useFetcher();
 
   // 🐨 set this to the customer data you get from the fetcher (if it exists)
-  const customers: Array<Customer> = [...data.customers];
+  const customers: Array<Customer> = fetcher.data?.customers ?? [];
   const [selectedCustomer, setSelectedCustomer] = useState<
     Customer | null | undefined
   >(null);
@@ -46,16 +40,18 @@ export function CustomerCombobox({ error }: { error?: string | null }) {
     items: customers,
     itemToString: (item) => (item ? item.name : ""),
     onInputValueChange: (changes) => {
+      if (!changes.inputValue) return;
       // 🐨 use your fetcher to submit the query and get back the customers
       // 💰 changes.inputValue is the query
       // 💰 what method do we need to set this to so it ends up in the loader?
       // 💰 what should the action URL be set to so the request is always sent to
       // this route module regardless of where this component is used?
-      fetcher.submit({
-        name: "query",
-        value: changes.inputValue ?? "",
-        action: "/resources/customers",
-      });
+      fetcher.submit(
+        {
+          query: changes.inputValue,
+        },
+        { method: "get", action: "/resources/customers" },
+      );
     },
   });
 
