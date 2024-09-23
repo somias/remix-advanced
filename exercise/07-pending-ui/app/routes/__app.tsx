@@ -12,8 +12,7 @@ export default function AppRoute() {
   // 🐨 add useTransition here.
   // 💯 add useSpinDelay (from 'spin-delay') here
   const transition = useTransition();
-  const loading = transition.state !== "idle";
-  const showSpinner = useSpinDelay(loading, { delay: 300, minDuration: 200 });
+  const showSpinner = useSpinDelay(transition.state !== "idle");
 
   return (
     <div className="relative flex h-full rounded-lg bg-white text-gray-600">
