@@ -1,9 +1,15 @@
-import { NavLink, Outlet, useLoaderData } from "@remix-run/react";
+import {
+  NavLink,
+  Outlet,
+  useLoaderData,
+  useTransition,
+} from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { FilePlusIcon } from "~/components";
 import { requireUser } from "~/session.server";
 import { getCustomerListItems } from "~/models/customer.server";
+import { useSpinDelay } from "spin-delay";
 
 export async function loader({ request }: LoaderArgs) {
   await requireUser(request);
@@ -17,9 +23,14 @@ export default function Customers() {
 
   // 🐨 get the transition from useTransition
   // 💰 use transition.location?.state to get the customer we're transitioning to
+  const transition = useTransition();
+  const customerState = transition.location?.state.customer;
 
   // 💯 to avoid a flash of loading state, you can use useSpinDelay
   // from spin-delay to determine whether to show the skeleton
+  // const spinDelay = useSpinDelay(customerState.customer);
+
+  console.log({ customerState });
 
   return (
     <div className="flex overflow-hidden rounded-lg border border-gray-100">
@@ -44,6 +55,7 @@ export default function Customers() {
               to={customer.id}
               // 🐨 add state to set the customer for the transition
               // 💰 state={{ customer }}
+              state={{ customer }}
               prefetch="intent"
               className={({ isActive }) =>
                 "block border-b border-gray-50 py-3 px-4 hover:bg-gray-50" +
@@ -67,7 +79,15 @@ export default function Customers() {
           <CustomerSkeleton /> (defined below) instead of
           the <Outlet />
         */}
-        <Outlet />
+        {customerState ? (
+          <CustomerSkeleton
+            name={customerState.name}
+            email={customerState.email}
+          />
+        ) : (
+          <Outlet />
+        )}
+
         <small className="p-2 text-center">
           Note: this is arbitrarily slow to demonstrate pending UI.
         </small>
