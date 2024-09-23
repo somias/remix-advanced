@@ -65,7 +65,10 @@ export default function CustomerRoute() {
         - Await "errorElement" prop can be the ErrorFallback component (imported from "~/components")
       */}
       <Suspense fallback={<InvoiceDetailsFallback />}>
-        <Await resolve={data.customerDetails} errorElement={<ErrorFallback />}>
+        <Await
+          resolve={data.customerDetails}
+          errorElement={<ErrorFallback message="Something went wrong!" />}
+        >
           {(resolvedValue) => (
             <table className="w-full">
               <tbody>
