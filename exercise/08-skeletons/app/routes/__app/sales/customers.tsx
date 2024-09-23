@@ -84,8 +84,8 @@ export default function Customers() {
         */}
         {showSkeleton ? (
           <CustomerSkeleton
-            name={loadingCustomer.name}
-            email={loadingCustomer.email}
+            name={loadingCustomer?.name}
+            email={loadingCustomer?.email}
           />
         ) : (
           <Outlet />
